@@ -1,8 +1,12 @@
 export default class helper {
-  static display(text: string|number) {
-    let h1 = document.createElement("h1");
-    h1.innerText = `>>> ${text}`;
-    document.body.appendChild(h1);
-  }
 
+    /**
+     * Display text in browser for dev purpose
+     * @param text text to display in browser
+     */
+    static display(text: string) {
+        let h1 = document.createElement("div");
+        h1.innerText = text;
+        document.body.appendChild(h1);
+    }
 }

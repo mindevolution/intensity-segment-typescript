@@ -1,4 +1,6 @@
 # Intensity segments
+This project using typescript to resolve the following intensity segments problem.
+
 ## Requirement
 We are looking for a program that manages “intensity” by segments. Segments are intervals from -infinity to
 infinity, we’d like you to implement functions that updates intensity by an integer amount for a given range.
@@ -42,11 +44,16 @@ segments.add(10, 40, -1);
 segments.toString(); // Should be "[[10,-1],[20,0],[30,-1],[40,0]]"
 ```
 
-## Installation
+## Installation, test and run
 
 ### Install
 ```
 npm install
+```
+
+### test
+```
+npm run test
 ```
 
 ### Run

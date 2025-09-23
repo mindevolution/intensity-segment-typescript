@@ -1,2 +1,3 @@
-// the intensity segments collection type
-export type Collections = Map<number, number>
+// the intensity segments segments type
+export type Segments = Map<number, number>
+export type Keys = Number[]
