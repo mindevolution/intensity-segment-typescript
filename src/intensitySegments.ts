@@ -9,7 +9,7 @@ export default class IntensitySegments {
   }
 
   /**
-   * Add intensity segments to segments
+   * Add intensity segment to segments
    * @param from 
    * @param to 
    * @param amount 
@@ -19,11 +19,13 @@ export default class IntensitySegments {
 
     if (this.isEmptySegments()) {
       this.set(from, to, amount);
-    } else { // existing segments not empty
+    } else {
+      // existing segments not empty
+      // get the left key and right key value
+      const { 0: leftKey, [sortedKeys.length - 1]: rightKey } = sortedKeys;
 
       // if the <from, to> not in the range of existing segments
       // just add it
-      const { 0: leftKey, [sortedKeys.length - 1]: rightKey } = sortedKeys;
       if ((leftKey && to < leftKey) || (rightKey && from > rightKey)) {
         this.set(from, to, amount);
         return;
@@ -34,7 +36,7 @@ export default class IntensitySegments {
       // - from out of rage, to within the range
       // - both from and to within the range
 
-      // for to larger than the range
+      // for to larger than the right key
       if (rightKey && to >= rightKey) {
         this.segments.set(to, 0)
       }
@@ -46,29 +48,45 @@ export default class IntensitySegments {
         // @ts-ignore: segments will not be undefined object
         this.segments.set(from, amount + this.segments.get(from));
       } else {
-        // from within the range but not added yet, just add it
+        // from within the range
         if (!this.segments.has(from)) {
           this.segments.set(from, amount);
+          let leftKey = this.leftKey(from)
+          console.log({
+            from,
+            leftKey
+          })
+          if (leftKey != -1) {
+            // @ts-ignore
+            this.segments.set(from, this.segments.get(from) + this.segments.get(leftKey))
+          }
         } else {
           // from within the range and has existing key, calculate the sum
           // @ts-ignore
           this.segments.set(from, this.segments.get(from) + amount)
         }
+
+        // to within the range
+        if (!this.segments.has(to)) {
+          let leftKey = this.leftKey(to)
+          // @ts-ignore
+          this.segments.set(to, this.segments.get(leftKey))
+        }
       }
+
+      // update the segments value within the from and to
+      sortedKeys.forEach(key => {
+        if (key > from && key < to) {
+          // @ts-ignore
+          this.segments.set(key, this.segments.get(key) + amount)
+        }
+      })
+
     }
-
-    // sort the segments
-    // sortedKeys.forEach(k => {
-    //   if (k > from && k < to) {
-    //     // @ts-ignore
-    //     this.segments.set(k, this.segments.get(k) + amount)
-    //   }
-    // })
-
   }
   
   /**
-   * Set new intensicty segment to segments
+   * Set new intensity segment to segments
    * @param from 
    * @param to 
    * @param amount 
@@ -109,7 +127,8 @@ export default class IntensitySegments {
   isEmptySegments = (): boolean => !this.keys().length;
 
   toString(): string {
-    const mapAsArray = Array.from(this.segments);
+    const sortedSegments = new Map([...this.segments.entries()].sort());
+    const mapAsArray = Array.from(sortedSegments);
     return JSON.stringify(mapAsArray);
   }
 }
