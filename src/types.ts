@@ -1,3 +1,3 @@
 // the intensity segments segments type
 export type Segments = Map<number, number>
-export type Keys = Number[]
+export type Keys = number[]
