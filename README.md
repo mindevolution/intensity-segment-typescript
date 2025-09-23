@@ -60,3 +60,7 @@ npm run test
 ```
 npm run start
 ```
+
+## Next steps
+- Optimize the sorted keys and sorted map with cache 
+- Any optimization for the loop inside the merge method

@@ -31,7 +31,7 @@ export default class IntensitySegments {
         return;
       }
 
-      // then the <from, to> has overlap with existing segments, has the folloing cases
+      // then the <from, to> has overlapped with existing segments, has the follwing cases
       // - from within range, to out the rage
       // - from out of rage, to within the range
       // - both from and to within the range
@@ -52,11 +52,8 @@ export default class IntensitySegments {
         if (!this.segments.has(from)) {
           this.segments.set(from, amount);
           let leftKey = this.leftKey(from)
-          console.log({
-            from,
-            leftKey
-          })
           if (leftKey != -1) {
+            // set the from value by accumulate the left nearby value
             // @ts-ignore
             this.segments.set(from, this.segments.get(from) + this.segments.get(leftKey))
           }
@@ -83,6 +80,8 @@ export default class IntensitySegments {
       })
 
     }
+
+    this.merge();
   }
   
   /**
@@ -108,6 +107,17 @@ export default class IntensitySegments {
    */
   sortedKeys = (): Keys => this.keys().sort();
 
+  /**
+   * get the sorted segments
+   * @returns sorted segments
+   */
+  sortedSegments = (): Segments => new Map([...this.segments.entries()].sort((a, b) => a[0] - b[0]));
+
+  /**
+   * get the left key next to the provide key
+   * @param key the key which which want get the left key next to it
+   * @returns the left nearby key for the provided one
+   */
   leftKey(key: number): number {
     let leftKey = -1;
 
@@ -126,9 +136,57 @@ export default class IntensitySegments {
    */
   isEmptySegments = (): boolean => !this.keys().length;
 
+  merge() {
+    if (this.isEmptySegments()) {
+      return;
+    }
+
+    const k = this.sortedKeys();
+
+    
+
+    // loop form beginning to check the same 0 value and remove the redundant
+    // @ts-ignore
+    for (let i = 0; i < k.length && this.segments.get(k[i]) == 0; i++) {
+      // @ts-ignore
+      this.segments.delete(k[i])
+    }
+    
+    // loop from end to remove the redundant
+    for (let i = k.length - 1; i >= 0; i--) {
+      // @ts-ignore
+      if (this.segments.get(k[i]) == 0) {
+        // @ts-ignore
+        if (i - 1 >= 0 && this.segments.get(k[i - 1]) == 0) {
+          // @ts-ignore
+          this.segments.delete(k[i])
+        }
+      }
+    }
+
+    // loop the elements between first to last
+    let start
+    // @ts-ignore
+    start = this.segments.get(k[0])
+    for (let i = 1; i < k.length; i++) {
+      // if the start intensity value the same as next element 
+      // then delete it 
+      // if not the save then move the start element to next one
+      // @ts-ignore
+      if (this.segments.get(k[i]) == start && start != 0) {
+        // @ts-ignore
+        this.segments.delete(k[i])
+      } else {
+        // @ts-ignore
+        start = this.segments.get(k[i])
+      }
+    }
+  }
+
+
+
   toString(): string {
-    const sortedSegments = new Map([...this.segments.entries()].sort());
-    const mapAsArray = Array.from(sortedSegments);
+    const mapAsArray = Array.from(this.sortedSegments());
     return JSON.stringify(mapAsArray);
   }
 }

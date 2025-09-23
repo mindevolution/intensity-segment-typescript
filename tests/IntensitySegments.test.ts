@@ -77,6 +77,14 @@ describe('Intensity segments test', () => {
 
         segments.add(10, 40, -1);
         const expectedResult4= '[[10,-1],[20,0],[30,-1],[40,0]]';
-        expect(segments.toString()).toEqual(expectedResult3);
+        expect(segments.toString()).toEqual(expectedResult4);
+
+        segments.add(-10, 10, 1);
+        const expectedResult5= '[[-10,1],[10,-1],[20,0],[30,-1],[40,0]]';
+        expect(segments.toString()).toEqual(expectedResult5);
+
+        segments.add(-10, 50, 2);
+        const expectedResult6= '[[-10,3],[10,1],[20,2],[30,1],[40,2],[50,0]]';
+        expect(segments.toString()).toEqual(expectedResult6);
     });
 });
