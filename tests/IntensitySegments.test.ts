@@ -28,13 +28,13 @@ describe('Intensity segments test', () => {
         expect(segments.sortedKeys()).toEqual([]);
 
         segments.add(10, 30, 1);
-
         segments.add(20, 40, 1);
+        // Should be "[[10,1],[20,2],[30,1],[40,0]]"
         expect(segments.leftKey(40)).toEqual(30);
         expect(segments.leftKey(50)).toEqual(40);
 
         segments.add(10, 40, -2);
-
+        // Should be "[[10,-1],[20,0],[30,-1],[40,0]]"
         expect(segments.leftKey(20)).toEqual(10);
         expect(segments.leftKey(10)).toEqual(-1);
     });

@@ -1,4 +1,5 @@
-import { Segments, Keys } from './types';
+type Segments = Map<number, number>;
+type Keys = number[];
 
 export default class IntensitySegments {
 
@@ -9,12 +10,16 @@ export default class IntensitySegments {
   }
 
   /**
-   * Add intensity segment to segments
-   * @param from 
-   * @param to 
-   * @param amount 
+   * Adds an intensity segment to the segments map.
+   * @param from The start of the segment (inclusive).
+   * @param to The end of the segment (exclusive).
+   * @param amount The intensity value to add to the segment.
    */
   add(from: number, to: number, amount: number) {
+    if (from > to) {
+      throw new Error("Invalid range: 'from' must be less than to 'to'");
+    }
+
     const sortedKeys = this.sortedKeys();
 
     if (this.isEmptySegments()) {
@@ -99,7 +104,9 @@ export default class IntensitySegments {
    * get the keys of the segments
    * @returns a array of numbers
    */
-  keys = (): Keys => Array.from(this.segments.keys());
+  keys(): Keys {
+    return Array.from(this.segments.keys());
+  }
 
   /**
    * get the sorted keys of the segments
@@ -119,22 +126,16 @@ export default class IntensitySegments {
    * @returns the left nearby key for the provided one
    */
   leftKey(key: number): number {
-    let leftKey = -1;
-
-    this.sortedKeys().forEach(k => {
-      if (k < key) {
-        leftKey = k;
-      }
-    })
-
-    return leftKey;
+    return this.sortedKeys().reduce((init, k) => (k < key ? k : init), -1);
   }
 
   /**
-   * get the sorted keys of the segments
-   * @returns a sorted array of numbers from small to large
+   * Checks if the segments map is empty.
+   * @returns True if the segments map is empty, false otherwise.
    */
-  isEmptySegments = (): boolean => !this.keys().length;
+  isEmptySegments(): boolean {
+    return this.keys().length === 0;
+  }
 
   merge() {
     if (this.isEmptySegments()) {
@@ -143,9 +144,7 @@ export default class IntensitySegments {
 
     const k = this.sortedKeys();
 
-    
-
-    // loop form beginning to check the same 0 value and remove the redundant
+    // loop from beginning to check the same 0 value and remove the redundant
     // @ts-ignore
     for (let i = 0; i < k.length && this.segments.get(k[i]) == 0; i++) {
       // @ts-ignore
