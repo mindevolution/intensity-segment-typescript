@@ -1,5 +1,13 @@
-import { IntensitySegments } from './IntensitySegments';
-IntensitySegments.HelloWorld();
+import IntensitySegments from './IntensitySegments';
+import Helper from './helper';
 
-const intensity = new IntensitySegments();
-console.log(intensity.add(3, 5));
+const segments = new IntensitySegments();
+
+const result = `
+const segments = new IntensitySegments();
+segments.toString(); // Should be "[]"
+
+>>> result: ${segments.toString()}
+`;
+
+Helper.display(result);
