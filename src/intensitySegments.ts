@@ -5,7 +5,7 @@ export type Keys = number[];
 
 export default class IntensitySegments {
 
-  private segments: Segments;
+  segments: Segments;
 
   constructor() {
     this.segments = new Map();
@@ -22,7 +22,7 @@ export default class IntensitySegments {
       throw new Error("Invalid range: 'from' must be less than to 'to'");
     }
 
-    const sortedKeys = this.sortedKeys();
+    const sortedKeys = this.sortedKeys(this.segments);
 
     if (this.isEmptySegments()) {
       this.set(from, to, amount);
@@ -85,15 +85,15 @@ export default class IntensitySegments {
    * get the keys of the segments
    * @returns a array of numbers
    */
-  keys(): Keys {
-    return Array.from(this.segments.keys());
+  keys(segments: Segments): Keys {
+    return Array.from(segments.keys());
   }
 
   /**
    * get the sorted keys of the segments
    * @returns a sorted array of numbers from small to large
    */
-  sortedKeys = (): Keys => this.keys().sort();
+  sortedKeys = (segments: Segments): Keys => this.keys(segments).sort((a, b) => a - b);
 
   /**
    * get the left key next to the provided key
@@ -102,7 +102,7 @@ export default class IntensitySegments {
    */
   leftKey(key: number): number {
     let leftKey = -1
-    this.sortedKeys().forEach(k => {
+    this.sortedKeys(this.segments).forEach(k => {
       if (k < key) {
         leftKey = k;
       }
@@ -115,16 +115,16 @@ export default class IntensitySegments {
    * @returns True if the segments map is empty, false otherwise.
    */
   isEmptySegments(): boolean {
-    return this.keys().length === 0;
+    return this.keys(this.segments).length === 0;
   }
 
-  mergeSameIntensity(segments: Segments): Segments {
+  merge(segments: Segments): Segments {
     if (this.isEmptySegments()) {
       return segments;
     }
 
-    const k = this.sortedKeys();
-    const mergedSegments = new Map(segments);
+    const mergedSegments = this.sortSegments(new Map(segments));
+    let k = this.sortedKeys(mergedSegments);
 
     let i;
     // loop from beginning to check the same 0 value and remove the redundant
@@ -134,6 +134,7 @@ export default class IntensitySegments {
       mergedSegments.delete(k[i])
     }
 
+    k = this.sortedKeys(mergedSegments);
     // loop from end to remove the redundant
     for (let i = k.length - 1; i >= 0; i--) {
       // @ts-ignore
@@ -146,7 +147,7 @@ export default class IntensitySegments {
       }
     }
 
-    // loop the elements between first to last
+    // merge segments in middle
     let start
     // @ts-ignore
     start = mergedSegments.get(k[0])
@@ -165,9 +166,13 @@ export default class IntensitySegments {
     return mergedSegments;
   }
 
+  sortSegments(segments: Segments): Segments {
+    return new Map([...segments.entries()].sort((a, b) => a[0] - b[0]))
+  }
+
   toString(): string {
-    const mergedSegments = this.mergeSameIntensity(this.segments);
-    const sortedSegments = new Map([...mergedSegments.entries()].sort((a, b) => a[0] - b[0]))
+    const mergedSegments = this.merge(this.segments);
+    const sortedSegments = this.sortSegments(mergedSegments);
     const mapAsArray = Array.from(sortedSegments);
     return JSON.stringify(mapAsArray);
   }
