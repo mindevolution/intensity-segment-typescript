@@ -1,3 +1,4 @@
+import { Segments } from './IntensitySegments';
 export default class helper {
 
     /**
@@ -8,5 +9,13 @@ export default class helper {
         let h1 = document.createElement("div");
         h1.innerText = text;
         document.body.appendChild(h1);
+    }
+
+  /**
+   * get the sorted segments
+   * @returns sorted segments
+   */
+    static sortMap(map: Segments) {
+        return new Map([...map.entries()].sort());
     }
 }
