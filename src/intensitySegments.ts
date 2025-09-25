@@ -83,10 +83,7 @@ export default class IntensitySegments {
           this.segments.set(key, this.segments.get(key) + amount)
         }
       })
-
     }
-
-    this.merge();
   }
   
   /**
@@ -118,7 +115,7 @@ export default class IntensitySegments {
    * get the sorted segments
    * @returns sorted segments
    */
-  sortedSegments = (): Segments => new Map([...this.segments.entries()].sort((a, b) => a[0] - b[0]));
+  sortedSegments = (segments: Segments): Segments => new Map([...segments.entries()].sort((a, b) => a[0] - b[0]));
 
   /**
    * get the left key next to the provide key
@@ -137,28 +134,29 @@ export default class IntensitySegments {
     return this.keys().length === 0;
   }
 
-  merge() {
+  mergeSameIntensity(segments: Segments): Segments {
     if (this.isEmptySegments()) {
-      return;
+      return segments;
     }
 
     const k = this.sortedKeys();
+    const mergedSegments = new Map(segments);
 
     // loop from beginning to check the same 0 value and remove the redundant
     // @ts-ignore
-    for (let i = 0; i < k.length && this.segments.get(k[i]) == 0; i++) {
+    for (let i = 0; i < k.length && mergedSegments.get(k[i]) == 0; i++) {
       // @ts-ignore
-      this.segments.delete(k[i])
+      mergedSegments.delete(k[i])
     }
     
     // loop from end to remove the redundant
     for (let i = k.length - 1; i >= 0; i--) {
       // @ts-ignore
-      if (this.segments.get(k[i]) == 0) {
+      if (mergedSegments.get(k[i]) == 0) {
         // @ts-ignore
-        if (i - 1 >= 0 && this.segments.get(k[i - 1]) == 0) {
+        if (i - 1 >= 0 && mergedSegments.get(k[i - 1]) == 0) {
           // @ts-ignore
-          this.segments.delete(k[i])
+          mergedSegments.delete(k[i])
         }
       }
     }
@@ -166,26 +164,26 @@ export default class IntensitySegments {
     // loop the elements between first to last
     let start
     // @ts-ignore
-    start = this.segments.get(k[0])
+    start = mergedSegments.get(k[0])
     for (let i = 1; i < k.length; i++) {
       // if the start intensity value the same as next element 
       // then delete it 
       // if not the save then move the start element to next one
       // @ts-ignore
-      if (this.segments.get(k[i]) == start && start != 0) {
+      if (mergedSegments.get(k[i]) == start && start != 0) {
         // @ts-ignore
-        this.segments.delete(k[i])
+        mergedSegments.delete(k[i])
       } else {
         // @ts-ignore
-        start = this.segments.get(k[i])
+        start = mergedSegments.get(k[i])
       }
     }
+    return mergedSegments;
   }
 
-
-
   toString(): string {
-    const mapAsArray = Array.from(this.sortedSegments());
+    const mergedSegments = this.mergeSameIntensity(this.segments);
+    const mapAsArray = Array.from(this.sortedSegments(mergedSegments));
     return JSON.stringify(mapAsArray);
   }
 }

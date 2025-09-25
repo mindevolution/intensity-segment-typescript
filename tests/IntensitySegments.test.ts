@@ -87,4 +87,35 @@ describe('Intensity segments test', () => {
         const expectedResult6= '[[-10,3],[10,1],[20,2],[30,1],[40,2],[50,0]]';
         expect(segments.toString()).toEqual(expectedResult6);
     });
+
+    it('should add new segment correctly verify', () => {
+        segments.add(10, 30, 1);
+        let expectedResult = '[[10,1],[30,0]]';
+
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(10, 30, -1);
+        expectedResult = '[]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(0, 30, 1);
+        expectedResult = '[[0,1],[30,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(0, 30, 1);
+        expectedResult = '[[0,2],[30,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(20, 50, -1);
+        expectedResult = '[[0,2],[20,1],[30,-1],[50,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(-10, 30, -1);
+        expectedResult = '[[-10,-1],[0,1],[20,0],[30,-1],[50,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(-10, 0, 1);
+        expectedResult = '[[0,1],[20,0],[30,-1],[50,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+    });
 });
