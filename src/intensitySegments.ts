@@ -126,27 +126,6 @@ export default class IntensitySegments {
     const mergedSegments = this.sortSegments(new Map(segments));
     let k = this.sortedKeys(mergedSegments);
 
-    let i;
-    // loop from beginning to check the same 0 value and remove the redundant
-    // @ts-ignore
-    for (i = 0; i < k.length && mergedSegments.get(k[i]) == 0; i++) {
-      // @ts-ignore
-      mergedSegments.delete(k[i])
-    }
-
-    k = this.sortedKeys(mergedSegments);
-    // loop from end to remove the redundant
-    for (let i = k.length - 1; i >= 0; i--) {
-      // @ts-ignore
-      if (mergedSegments.get(k[i]) == 0) {
-        // @ts-ignore
-        if (i - 1 >= 0 && mergedSegments.get(k[i - 1]) == 0) {
-          // @ts-ignore
-          mergedSegments.delete(k[i])
-        }
-      }
-    }
-
     // merge segments in middle
     let start
     // @ts-ignore
@@ -163,6 +142,26 @@ export default class IntensitySegments {
         start = mergedSegments.get(k[i])
       }
     }
+
+    // loop from end to remove the redundant
+    for (let i = k.length - 1; i >= 0; i--) {
+      // @ts-ignore
+      if (mergedSegments.get(k[i]) == 0) {
+        // @ts-ignore
+        if (i - 1 >= 0 && mergedSegments.get(k[i - 1]) == 0) {
+          // @ts-ignore
+          mergedSegments.delete(k[i])
+        }
+      }
+    }
+
+    // checking the first segment, if 0 then remove
+    // @ts-ignore
+    if (mergedSegments.get(k[0]) == 0) {
+      // @ts-ignore
+      mergedSegments.delete(k[0])
+    }
+
     return mergedSegments;
   }
 
