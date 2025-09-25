@@ -61,6 +61,17 @@ npm run test
 npm run start
 ```
 
+### Usage
+```
+import IntensitySegments from './IntensitySegments';
+
+const segments = new IntensitySegments();
+
+segments.toString() // result 
+segments.add(10, 30, 1);
+segments.toString() // result 
+```
+
 ## Next steps
 - Optimize the sorted keys and sorted map with cache 
 - Any optimization for the loop inside the merge method

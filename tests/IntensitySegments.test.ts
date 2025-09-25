@@ -157,4 +157,22 @@ describe('Intensity segments test', () => {
         expectedResult = '[[0,1],[20,0],[30,-1],[40,0],[50,1],[60,0]]';
         expect(segments.toString()).toEqual(expectedResult);
     });
+
+    it('should merged right', () => {
+        segments.add(0, 10, 1);
+        let expectedResult = '[[0,1],[10,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(2, 10, 1);
+        expectedResult = '[[0,1],[2,2],[10,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(2, 10, -1);
+        expectedResult = '[[0,1],[2,1],[10,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(-2, 3, -1);
+        expectedResult = '[[-2,-1],[0,0],[3,1],[10,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+    });
 });

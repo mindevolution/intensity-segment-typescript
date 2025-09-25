@@ -96,12 +96,18 @@ export default class IntensitySegments {
   sortedKeys = (): Keys => this.keys().sort();
 
   /**
-   * get the left key next to the provide key
+   * get the left key next to the provided key
    * @param key the key which which want get the left key next to it
    * @returns the left nearby key for the provided one
    */
   leftKey(key: number): number {
-    return this.sortedKeys().reduce((init, k) => (k < key ? k : init), -1);
+    let leftKey = -1
+    this.sortedKeys().forEach(k => {
+      if (k < key) {
+        leftKey = k;
+      }
+    })
+    return leftKey;
   }
 
   /**
@@ -120,9 +126,10 @@ export default class IntensitySegments {
     const k = this.sortedKeys();
     const mergedSegments = new Map(segments);
 
+    let i;
     // loop from beginning to check the same 0 value and remove the redundant
     // @ts-ignore
-    for (let i = 0; i < k.length && mergedSegments.get(k[i]) == 0; i++) {
+    for (i = 0; i < k.length && mergedSegments.get(k[i]) == 0; i++) {
       // @ts-ignore
       mergedSegments.delete(k[i])
     }
@@ -146,7 +153,6 @@ export default class IntensitySegments {
     for (let i = 1; i < k.length; i++) {
       // if the start intensity value the same as next element 
       // then delete it 
-      // if not the save then move the start element to next one
       // @ts-ignore
       if (mergedSegments.get(k[i]) == start && start != 0) {
         // @ts-ignore
@@ -161,7 +167,8 @@ export default class IntensitySegments {
 
   toString(): string {
     const mergedSegments = this.mergeSameIntensity(this.segments);
-    const mapAsArray = Array.from(Helper.sortMap(mergedSegments));
+    const sortedSegments = new Map([...mergedSegments.entries()].sort((a, b) => a[0] - b[0]))
+    const mapAsArray = Array.from(sortedSegments);
     return JSON.stringify(mapAsArray);
   }
 }
