@@ -1,9 +1,11 @@
-type Segments = Map<number, number>;
-type Keys = number[];
+import Helper from './helper';
+
+export type Segments = Map<number, number>;
+export type Keys = number[];
 
 export default class IntensitySegments {
 
-  private segments: Segments;
+  segments: Segments;
 
   constructor() {
     this.segments = new Map();
@@ -20,72 +22,41 @@ export default class IntensitySegments {
       throw new Error("Invalid range: 'from' must be less than to 'to'");
     }
 
-    const sortedKeys = this.sortedKeys();
+    const sortedKeys = this.sortedKeys(this.segments);
 
     if (this.isEmptySegments()) {
       this.set(from, to, amount);
-    } else {
-      // existing segments not empty
-      // get the left key and right key value
-      const { 0: leftKey, [sortedKeys.length - 1]: rightKey } = sortedKeys;
+      return;
+    } 
 
-      // if the <from, to> not in the range of existing segments
-      // just add it
-      if ((leftKey && to < leftKey) || (rightKey && from > rightKey)) {
-        this.set(from, to, amount);
-        return;
-      }
+    // existing segments not empty
+    // get the left key and right key value
+    const leftKey = sortedKeys[0];
+    const rightKey = sortedKeys[sortedKeys.length - 1];
 
-      // then the <from, to> has overlapped with existing segments, has the follwing cases
-      // - from within range, to out the rage
-      // - from out of rage, to within the range
-      // - both from and to within the range
-
-      // for to larger than the right key
-      if (rightKey && to >= rightKey) {
-        this.segments.set(to, 0)
-      }
-
-      // for from small than the left key
-      if (leftKey && from < leftKey) {
-        this.segments.set(from, amount);
-      } else if (from == leftKey) {
-        // @ts-ignore: segments will not be undefined object
-        this.segments.set(from, amount + this.segments.get(from));
-      } else {
-        // from within the range
-        if (!this.segments.has(from)) {
-          this.segments.set(from, amount);
-          let leftKey = this.leftKey(from)
-          if (leftKey != -1) {
-            // set the from value by accumulate the left nearby value
-            // @ts-ignore
-            this.segments.set(from, this.segments.get(from) + this.segments.get(leftKey))
-          }
-        } else {
-          // from within the range and has existing key, calculate the sum
-          // @ts-ignore
-          this.segments.set(from, this.segments.get(from) + amount)
-        }
-
-        // to within the range
-        if (!this.segments.has(to)) {
-          let leftKey = this.leftKey(to)
-          // @ts-ignore
-          this.segments.set(to, this.segments.get(leftKey))
-        }
-      }
-
-      // update the segments value within the from and to
-      sortedKeys.forEach(key => {
-        if (key > from && key < to) {
-          // @ts-ignore
-          this.segments.set(key, this.segments.get(key) + amount)
-        }
-      })
+    // if the <from, to> not in the range of existing segments
+    // just add it
+    // @ts-ignore
+    if (to < leftKey || from > rightKey) {
+      this.set(from, to, amount);
+      return;
     }
+
+    const fromIntensity = this.getIntensityValue(from, amount);
+    this.segments.set(from, fromIntensity);
+
+    const toIntensity = this.getIntensityValue(to, 0);
+    this.segments.set(to, toIntensity);
+
+    // update the segments value within the from and to
+    sortedKeys.forEach(key => {
+      if (key > from && key < to) {
+        // @ts-ignore
+        this.segments.set(key, this.segments.get(key) + amount)
+      }
+    })
   }
-  
+
   /**
    * Set new intensity segment to segments
    * @param from 
@@ -97,33 +68,46 @@ export default class IntensitySegments {
     this.segments.set(to, 0);
   }
 
+  getIntensityValue(key: number, amount: number): number {
+    let updatedAmount = amount;
+    const leftKey = this.leftKey(key)
+    if (this.segments.has(key)) {
+      // @ts-ignore
+      updatedAmount = this.segments.get(key) + amount;
+    } else if (leftKey > -1) {
+      // @ts-ignore
+      updatedAmount = this.segments.get(leftKey) + amount;
+    }
+    return updatedAmount;
+  }
+
   /**
    * get the keys of the segments
    * @returns a array of numbers
    */
-  keys(): Keys {
-    return Array.from(this.segments.keys());
+  keys(segments: Segments): Keys {
+    return Array.from(segments.keys());
   }
 
   /**
    * get the sorted keys of the segments
    * @returns a sorted array of numbers from small to large
    */
-  sortedKeys = (): Keys => this.keys().sort();
+  sortedKeys = (segments: Segments): Keys => this.keys(segments).sort((a, b) => a - b);
 
   /**
-   * get the sorted segments
-   * @returns sorted segments
-   */
-  sortedSegments = (segments: Segments): Segments => new Map([...segments.entries()].sort((a, b) => a[0] - b[0]));
-
-  /**
-   * get the left key next to the provide key
+   * get the left key next to the provided key
    * @param key the key which which want get the left key next to it
    * @returns the left nearby key for the provided one
    */
   leftKey(key: number): number {
-    return this.sortedKeys().reduce((init, k) => (k < key ? k : init), -1);
+    let leftKey = -1
+    this.sortedKeys(this.segments).forEach(k => {
+      if (k < key) {
+        leftKey = k;
+      }
+    })
+    return leftKey;
   }
 
   /**
@@ -131,24 +115,34 @@ export default class IntensitySegments {
    * @returns True if the segments map is empty, false otherwise.
    */
   isEmptySegments(): boolean {
-    return this.keys().length === 0;
+    return this.keys(this.segments).length === 0;
   }
 
-  mergeSameIntensity(segments: Segments): Segments {
+  merge(segments: Segments): Segments {
     if (this.isEmptySegments()) {
       return segments;
     }
 
-    const k = this.sortedKeys();
-    const mergedSegments = new Map(segments);
+    const mergedSegments = this.sortSegments(new Map(segments));
+    let k = this.sortedKeys(mergedSegments);
 
-    // loop from beginning to check the same 0 value and remove the redundant
+    // merge segments in middle
+    let start
     // @ts-ignore
-    for (let i = 0; i < k.length && mergedSegments.get(k[i]) == 0; i++) {
+    start = mergedSegments.get(k[0])
+    for (let i = 1; i < k.length; i++) {
+      // if the start intensity value the same as next element 
+      // then delete it 
       // @ts-ignore
-      mergedSegments.delete(k[i])
+      if (mergedSegments.get(k[i]) == start && start != 0) {
+        // @ts-ignore
+        mergedSegments.delete(k[i])
+      } else {
+        // @ts-ignore
+        start = mergedSegments.get(k[i])
+      }
     }
-    
+
     // loop from end to remove the redundant
     for (let i = k.length - 1; i >= 0; i--) {
       // @ts-ignore
@@ -161,29 +155,24 @@ export default class IntensitySegments {
       }
     }
 
-    // loop the elements between first to last
-    let start
+    // checking the first segment, if 0 then remove
     // @ts-ignore
-    start = mergedSegments.get(k[0])
-    for (let i = 1; i < k.length; i++) {
-      // if the start intensity value the same as next element 
-      // then delete it 
-      // if not the save then move the start element to next one
+    if (mergedSegments.get(k[0]) == 0) {
       // @ts-ignore
-      if (mergedSegments.get(k[i]) == start && start != 0) {
-        // @ts-ignore
-        mergedSegments.delete(k[i])
-      } else {
-        // @ts-ignore
-        start = mergedSegments.get(k[i])
-      }
+      mergedSegments.delete(k[0])
     }
+
     return mergedSegments;
   }
 
+  sortSegments(segments: Segments): Segments {
+    return new Map([...segments.entries()].sort((a, b) => a[0] - b[0]))
+  }
+
   toString(): string {
-    const mergedSegments = this.mergeSameIntensity(this.segments);
-    const mapAsArray = Array.from(this.sortedSegments(mergedSegments));
+    const mergedSegments = this.merge(this.segments);
+    const sortedSegments = this.sortSegments(mergedSegments);
+    const mapAsArray = Array.from(sortedSegments);
     return JSON.stringify(mapAsArray);
   }
 }

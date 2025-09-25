@@ -12,20 +12,20 @@ describe('Intensity segments test', () => {
     });
 
     it('should get the sorted keys', () => {
-        expect(segments.sortedKeys()).toEqual([]);
+        expect(segments.sortedKeys(segments.segments)).toEqual([]);
 
         segments.add(10, 30, 1);
-        expect(segments.sortedKeys()).toEqual([10, 30]);
+        expect(segments.sortedKeys(segments.segments)).toEqual([10, 30]);
 
         segments.add(20, 40, 1);
-        expect(segments.sortedKeys()).toEqual([10, 20, 30, 40]);
+        expect(segments.sortedKeys(segments.segments)).toEqual([10, 20, 30, 40]);
 
         segments.add(10, 40, -2);
-        expect(segments.sortedKeys()).toEqual([10, 20, 30, 40]);
+        expect(segments.sortedKeys(segments.segments)).toEqual([10, 20, 30, 40]);
     });
 
     it('should get the left key', () => {
-        expect(segments.sortedKeys()).toEqual([]);
+        expect(segments.sortedKeys(segments.segments)).toEqual([]);
 
         segments.add(10, 30, 1);
         segments.add(20, 40, 1);
@@ -116,6 +116,63 @@ describe('Intensity segments test', () => {
 
         segments.add(-10, 0, 1);
         expectedResult = '[[0,1],[20,0],[30,-1],[50,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+    });
+
+    it('should merged right', () => {
+        segments.add(10, 30, 1);
+        let expectedResult = '[[10,1],[30,0]]';
+
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(10, 30, -1);
+        expectedResult = '[]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(0, 30, 1);
+        expectedResult = '[[0,1],[30,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(0, 30, 1);
+        expectedResult = '[[0,2],[30,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(20, 50, -1);
+        expectedResult = '[[0,2],[20,1],[30,-1],[50,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(-10, 30, -1);
+        expectedResult = '[[-10,-1],[0,1],[20,0],[30,-1],[50,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(-10, 0, 1);
+        expectedResult = '[[0,1],[20,0],[30,-1],[50,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(40, 60, 1);
+        expectedResult = '[[0,1],[20,0],[30,-1],[40,0],[50,1],[60,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(40, 70, 0);
+        expectedResult = '[[0,1],[20,0],[30,-1],[40,0],[50,1],[60,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+    });
+
+    it('should merged right', () => {
+        segments.add(0, 100, 1);
+        let expectedResult = '[[0,1],[100,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(20, 100, 1);
+        expectedResult = '[[0,1],[20,2],[100,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(20, 100, -1);
+        expectedResult = '[[0,1],[100,0]]';
+        expect(segments.toString()).toEqual(expectedResult);
+
+        segments.add(-20, 30, -1);
+        expectedResult = '[[-20,-1],[0,0],[30,1],[100,0]]';
         expect(segments.toString()).toEqual(expectedResult);
     });
 });

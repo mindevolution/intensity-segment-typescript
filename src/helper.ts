@@ -1,3 +1,4 @@
+import { Segments } from './IntensitySegments';
 export default class helper {
 
     /**
